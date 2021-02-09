@@ -1,0 +1,22 @@
+[
+    {
+        ParameterKey: "WebAppEnv",
+        ParameterValue: "production"
+    },
+    {
+        ParameterKey: "SourceIP",
+        ParameterValue: "45.37.207.213/32"
+    },
+    {
+        ParameterKey: "WebAppACL",
+        ParameterValue: "UdagramACL"
+    },
+    {
+        ParameterKey: "S3BastionSSH",
+        ParameterValue: "udagram-key"
+    },
+    {
+        ParameterKey: "KeyBastionSSH",
+        ParameterValue: "udagram"
+    }
+]

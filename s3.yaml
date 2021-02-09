@@ -1,0 +1,116 @@
+---
+Description: >
+  Author: Trey Fletcher
+  CloudFormation template to create a S3 bucket for deploying a highly-available web app.
+
+Parameters:
+  WebAppEnv:
+    Description: "An Enviroment name to tag resources"
+    ConstraintDescription: "Your env is invalid! Please, type an environment from the list"
+    Type: "String"
+    AllowedValues:
+      - "development"
+      - "staging"
+      - "production"
+
+Resources:
+  S3WebApp:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: trey-udacity-udagram
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+    DeletionPolicy: Delete
+
+  S3WebAppPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3WebApp
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: s3:*
+            Resource: !Join ["", ["arn:aws:s3:::", !Ref "S3WebApp", "/*"]]
+            Principal:
+              AWS: "*"
+
+  S3KeyPar:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: trey-udagram-udacity-key
+      AccessControl: Private
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+    DeletionPolicy: Retain
+
+  S3KeyParPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3KeyPar
+      PolicyDocument:
+        Statement:
+          - Sid: AllowStaticObjectDownload
+            Action: s3:GetObject
+            Effect: Allow
+            Resource: !Join ["", ["arn:aws:s3:::", !Ref "S3KeyPar", "/*"]]
+            Principal:
+              AWS: "*"
+          - Sid: PutObjectAccess
+            Action: s3:PutObject
+            Effect: Allow
+            Resource: !Join ["", ["arn:aws:s3:::", !Ref "S3KeyPar", "/*"]]
+            Principal:
+              AWS: "*"
+  S3Logs:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: trey-udagram-udacity-logs
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+    DeletionPolicy: Retain
+
+  S3LogsPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Logs
+      PolicyDocument:
+        Statement:
+          - Sid: AllowStaticObjectDownload
+            Action: s3:GetObject
+            Effect: Allow
+            Resource: !Join ["", ["arn:aws:s3:::", !Ref "S3Logs", "/*"]]
+            Principal:
+              AWS: "*"
+          - Sid: PutObjectAccess
+            Action: s3:PutObject
+            Effect: Allow
+            Resource: !Join ["", ["arn:aws:s3:::", !Ref "S3Logs", "/*"]]
+            Principal:
+              AWS: "*"
+
+Outputs:
+  WebsiteURL:
+    Value: !GetAtt [S3WebApp, WebsiteURL]
+    Description: URL for website hosted on S3
+  WebsiteSecureURL:
+    Value: !Join ["", ["https://", !GetAtt [S3WebApp, DomainName]]]
+    Description: Secure URL for website hosted on S3
+  S3KeyParT:
+    Value: !GetAtt [S3KeyPar, WebsiteURL]
+    Description: URL for key hosted on S3
+  S3KeyParTSecureURL:
+    Value: !Join ["", ["https://", !GetAtt [S3KeyPar, DomainName]]]
+    Description: Secure URL for key hosted on S3
+  S3Logs:
+    Value: !GetAtt [S3Logs, DomainName]
+    Description: URL for logs hosted on S3
+    Export:
+      Name: !Sub ${WebAppEnv}-S3-LOGS
+  S3LogsURL:
+    Value: !Join ["", ["https://", !GetAtt [S3Logs, DomainName]]]
+    Description: Secure URL for logs hosted on S3
